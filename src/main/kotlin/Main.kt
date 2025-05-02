@@ -1,4 +1,4 @@
-package org.example
+package main
 
 import org.gnome.adw.ApplicationWindow
 import org.gnome.adw.HeaderBar
