@@ -1,12 +1,15 @@
+import sun.jvmstat.monitor.MonitoredVmUtil.mainClass
+
 plugins {
-    kotlin("jvm") version "2.1.20"
+    kotlin("jvm") version "2.4.0"
     application
-    id("io.github.jwharm.flatpak-gradle-generator") version "1.4.0"
+    id("io.github.jwharm.flatpak-gradle-generator") version "1.8.0"
 }
+
+
 
 application {
     mainClass = "main.MainKt"
-    applicationDefaultJvmArgs += "--enable-native-access=ALL-UNNAMED"
 }
 
 group = "org.example"
@@ -19,8 +22,29 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("io.github.jwharm.javagi:gtk:0.12.0")
-    implementation("io.github.jwharm.javagi:adw:0.12.0")
+    implementation("org.java-gi:gtk:1.0.0-RC2")
+    implementation("org.java-gi:adw:1.0.0-RC2")
+
+}
+
+
+
+tasks.named<JavaExec>("run") {
+    val javaGiJvmArgs = buildList {
+        val nativeLibraryPath = listOf("/opt/homebrew/lib", "/usr/local/lib")
+            .filter { file(it).isDirectory }
+            .joinToString(File.pathSeparator)
+
+        add("--enable-native-access=ALL-UNNAMED")
+
+        if (System.getProperty("os.name").contains("Mac", ignoreCase = true)) {
+            add("-XstartOnFirstThread")
+            if (nativeLibraryPath.isNotBlank()) {
+                add("-Djavagi.path=$nativeLibraryPath")
+            }
+        }
+    }
+    jvmArgs(*javaGiJvmArgs.toTypedArray())
 }
 
 tasks.flatpakGradleGenerator {
@@ -36,6 +60,6 @@ tasks.test {
     useJUnitPlatform()
 }
 
-kotlin {
-    jvmToolchain(23)
-}
+//kotlin {
+//    jvmToolchain(23)
+//}
